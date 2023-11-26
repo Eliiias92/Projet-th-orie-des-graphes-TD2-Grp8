@@ -1,4 +1,125 @@
 commit2
 modif=commit?
 c'est super
-woop woop
+woop 
+lundi decouverte
+
+mardi repartition 
+
+mercredi avancement par groupe
+
+jeudi mis en commun 
+
+vendredi de meme
+
+samedi ppt et ainsi de suite
+
+#include <stdbool.h> // Pour utiliser les booléens
+
+// Structure de la file pour le BFS
+typedef struct File {
+    int *elements;
+    int front, rear;
+} File;
+
+File *creer_file(int taille);
+bool est_vide(File *file);
+void enfiler(File *file, int sommet);
+int defiler(File *file);
+void liberer_file(File *file);
+
+bool *visites; // Tableau pour marquer les sommets visités dans les parcours
+
+void initialiser_visites(Graphe *graphe);
+void parcours_BFS(Graphe *graphe, int sommet_initial);
+void parcours_DFS(Graphe *graphe, int sommet_initial);
+
+File *creer_file(int taille) {
+    File *file = (File *)malloc(sizeof(File));
+    file->elements = (int *)malloc(taille * sizeof(int));
+    file->front = file->rear = -1;
+    return file;
+}
+
+bool est_vide(File *file) {
+    return (file->front == -1);
+}
+
+void enfiler(File *file, int sommet) {
+    if (file->rear == -1)
+        file->front = file->rear = 0;
+    else
+        file->rear++;
+    file->elements[file->rear] = sommet;
+}
+
+int defiler(File *file) {
+    int sommet = file->elements[file->front];
+    if (file->front == file->rear)
+        file->front = file->rear = -1;
+    else
+        file->front++;
+    return sommet;
+}
+
+void liberer_file(File *file) {
+    free(file->elements);
+    free(file);
+}
+
+void initialiser_visites(Graphe *graphe) {
+    visites = (bool *)malloc(graphe->ordre * sizeof(bool));
+    for (int i = 0; i < graphe->ordre; i++) {
+        visites[i] = false;
+    }
+}
+
+void parcours_BFS(Graphe *graphe, int sommet_initial) {
+    initialiser_visites(graphe);
+    File *file = creer_file(graphe->ordre);
+    enfiler(file, sommet_initial);
+    visites[sommet_initial] = true;
+
+    printf("Parcours BFS à partir du sommet %d : \n", sommet_initial);
+
+    while (!est_vide(file)) {
+        int sommet = defiler(file);
+        printf("%d ", sommet);
+
+        pArc arc = graphe->pSommet[sommet]->arc;
+        while (arc != NULL) {
+            int voisin = arc->sommet;
+            if (!visites[voisin]) {
+                enfiler(file, voisin);
+                visites[voisin] = true;
+            }
+            arc = arc->arc_suivant;
+        }
+    }
+
+    printf("\n");
+    liberer_file(file);
+    free(visites);
+}
+
+void parcours_DFS_recursif(Graphe *graphe, int sommet) {
+    visites[sommet] = true;
+    printf("%d ", sommet);
+
+    pArc arc = graphe->pSommet[sommet]->arc;
+    while (arc != NULL) {
+        int voisin = arc->sommet;
+        if (!visites[voisin]) {
+            parcours_DFS_recursif(graphe, voisin);
+        }
+        arc = arc->arc_suivant;
+    }
+}
+
+void parcours_DFS(Graphe *graphe, int sommet_initial) {
+    initialiser_visites(graphe);
+
+    printf("Parcours DFS à partir du sommet %d : \n", sommet_initial);
+    parcours_DFS_recursif(graphe, sommet_initial);
+    printf("\n");
+}
