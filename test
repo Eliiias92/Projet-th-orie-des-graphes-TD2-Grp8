@@ -123,3 +123,7 @@ void parcours_DFS(Graphe *graphe, int sommet_initial) {
     parcours_DFS_recursif(graphe, sommet_initial);
     printf("\n");
 }
+
+
+
+
