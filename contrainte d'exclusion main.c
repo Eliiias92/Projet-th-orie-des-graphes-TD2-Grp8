@@ -3,85 +3,85 @@
 
 // Structure pour la matrice d'adjacence
 typedef struct {
-    int** matrix;
-    int size;
-} AdjacencyMatrix;
+    int** matrice;
+    int tailleMat;
+} Adjacence;
 
 // Structure pour représenter une station et les opérations qui lui sont attribuées
 typedef struct {
     int* operations;
-    int count;
+    int compteur;
 } Station;
 
 // Fonction pour initialiser la matrice d'adjacence
-AdjacencyMatrix initMatrix(int size) {
-    AdjacencyMatrix adjacencyMatrix;
-    adjacencyMatrix.size = size;
+Adjacence initMatrice(int taille) {
+    Adjacence adjMatrice;
+    adjMatrice.tailleMat = taille;
 
     // Allouer de la mémoire pour la matrice
-    adjacencyMatrix.matrix = (int**)malloc((size + 1) * sizeof(int*));
-    for (int i = 1; i <= size; i++) {
-        adjacencyMatrix.matrix[i] = (int*)malloc((size + 1) * sizeof(int));
-        for (int j = 1; j <= size; j++) {
-            adjacencyMatrix.matrix[i][j] = 0;  // Initialiser à zéro
+    adjMatrice.matrice = (int**)malloc((taille + 1) * sizeof(int*));
+    for (int i = 1; i <= taille; i++) {
+        adjMatrice.matrice[i] = (int*)malloc((taille + 1) * sizeof(int));
+        for (int j = 1; j <= taille; j++) {
+            adjMatrice.matrice[i][j] = 0;  // Initialiser à zéro
         }
     }
 
-    return adjacencyMatrix;
+    return adjMatrice;
 }
 
 // Fonction pour lire les contraintes depuis le fichier et mettre à jour la matrice d'adjacence
-void readConstraints(FILE* fichier, AdjacencyMatrix* adjacencyMatrix) {
+void Contraintes(FILE* fichier, Adjacence* adjMatrice) {
     int op1, op2;
 
     // Lire les contraintes du fichier et les ajouter dans la matrice
     while (fscanf(fichier, "%d %d", &op1, &op2) == 2) {
-        adjacencyMatrix->matrix[op1][op2] = 1;
-        adjacencyMatrix->matrix[op2][op1] = 1;
+        adjMatrice->matrice[op1][op2] = 1;
+        adjMatrice->matrice[op2][op1] = 1;
     }
 }
 
 // Fonction pour libérer la mémoire allouée pour la matrice
-void freeMatrix(AdjacencyMatrix* adjacencyMatrix) {
-    for (int i = 1; i <= adjacencyMatrix->size; i++) {
-        free(adjacencyMatrix->matrix[i]);
+void freeM(Adjacence* adjMatrice) {
+    for (int i = 1; i <= adjMatrice->tailleMat; i++) {
+        free(adjMatrice->matrice[i]);
     }
-    free(adjacencyMatrix->matrix);
+    free(adjMatrice->matrice);
 }
 
 // Fonction pour répartir les opérations par station
-void assignOperations(const AdjacencyMatrix* adjacencyMatrix) {
+void assignOperations(const Adjacence* adjMatrice) {
     int maxStations = 1;  // Nombre initial de stations
     Station* stations = (Station*)malloc(maxStations * sizeof(Station));
 
     // Initialiser la première station
-    stations[0].operations = (int*)malloc((adjacencyMatrix->size + 1) * sizeof(int));
-    stations[0].count = 0;
+    stations[0].operations = (int*)malloc((adjMatrice->tailleMat + 1) * sizeof(int));
+    stations[0].compteur = 0;
 
     // Liste pour stocker les paires d'opérations incompatibles
-    int** incompatiblePairs = (int**)malloc(adjacencyMatrix->size * sizeof(int*));
-    for (int i = 1; i <= adjacencyMatrix->size; i++) {
-        incompatiblePairs[i - 1] = (int*)malloc((adjacencyMatrix->size + 1) * sizeof(int));
-        for (int j = 1; j <= adjacencyMatrix->size; j++) {
-            incompatiblePairs[i - 1][j] = 0;
+    int** incompatibles = (int**)malloc(adjMatrice->tailleMat * sizeof(int*));
+    for (int i = 1; i <= adjMatrice->tailleMat; i++) {
+        incompatibles[i - 1] = (int*)malloc((adjMatrice->tailleMat + 1) * sizeof(int));
+        for (int j = 1; j <= adjMatrice->tailleMat; j++) {
+            incompatibles[i - 1][j] = 0;
         }
     }
 
     // Trouver les paires d'opérations incompatibles
-    for (int i = 1; i <= adjacencyMatrix->size; i++) {
-        for (int j = i + 1; j <= adjacencyMatrix->size; j++) {
-            if (adjacencyMatrix->matrix[i][j] == 1) {
-                incompatiblePairs[i - 1][j] = 1;
-                incompatiblePairs[j - 1][i] = 1;
+    for (int i = 1; i <= adjMatrice->tailleMat; i++) {
+        for (int j = i + 1; j <= adjMatrice->tailleMat; j++) {
+            if (adjMatrice->matrice[i][j] == 1) {
+                incompatibles[i - 1][j] = 1;
+                incompatibles[j - 1][i] = 1;
             }
         }
     }
 
     // Afficher les paires d'opérations incompatibles
-    printf("Operations non realisables par la meme station :\n");
-    for (int i = 1; i <= adjacencyMatrix->size; i++) {
-        for (int j = i + 1; j <= adjacencyMatrix->size; j++) {
-            if (incompatiblePairs[i - 1][j] == 1) {
+    printf("Operations non effectuables par la meme station :\n");
+    for (int i = 1; i <= adjMatrice->tailleMat; i++) {
+        for (int j = i + 1; j <= adjMatrice->tailleMat; j++) {
+            if (incompatibles[i - 1][j] == 1) {
                 printf("%d et %d\n", i, j);
             }
         }
@@ -89,32 +89,32 @@ void assignOperations(const AdjacencyMatrix* adjacencyMatrix) {
     printf("\n");
 
     // Attribuer les opérations aux stations
-    for (int i = 1; i <= adjacencyMatrix->size; i++) {
-        int assigned = 0;
+    for (int i = 1; i <= adjMatrice->tailleMat; i++) {
+        int attribue = 0;
         // Parcourir les stations existantes
         for (int j = 0; j < maxStations; j++) {
-            int conflict = 0;
-            // Vérifier si l'opération est en conflit avec les opérations déjà attribuées à la station
-            for (int k = 0; k < stations[j].count; k++) {
-                if (incompatiblePairs[i - 1][stations[j].operations[k]] == 1) {
-                    conflict = 1;
+            int b = 0;
+            // Vérifier si l'opération est réalisable avec les opérations déjà attribuées à la station
+            for (int k = 0; k < stations[j].compteur; k++) {
+                if (incompatibles[i - 1][stations[j].operations[k]] == 1) {
+                    b = 1;
                     break;
                 }
             }
             // Si pas de conflit, attribuer l'opération à la station
-            if (!conflict) {
-                stations[j].operations[stations[j].count++] = i;
-                assigned = 1;
+            if (!b) {
+                stations[j].operations[stations[j].compteur++] = i;
+                attribue = 1;
                 break;
             }
         }
         // Si toutes les stations sont occupées, ajouter une nouvelle station
-        if (!assigned) {
+        if (!attribue) {
             maxStations++;
             stations = (Station*)realloc(stations, maxStations * sizeof(Station));
-            stations[maxStations - 1].operations = (int*)malloc((adjacencyMatrix->size + 1) * sizeof(int));
-            stations[maxStations - 1].count = 0;
-            stations[maxStations - 1].operations[stations[maxStations - 1].count++] = i;
+            stations[maxStations - 1].operations = (int*)malloc((adjMatrice->tailleMat + 1) * sizeof(int));
+            stations[maxStations - 1].compteur = 0;
+            stations[maxStations - 1].operations[stations[maxStations - 1].compteur++] = i;
         }
     }
 
@@ -122,7 +122,7 @@ void assignOperations(const AdjacencyMatrix* adjacencyMatrix) {
     printf("\nRepartition des operations par station :\n");
     for (int i = 0; i < maxStations; i++) {
         printf("Station %d : ", i + 1);
-        for (int j = 0; j < stations[i].count; j++) {
+        for (int j = 0; j < stations[i].compteur; j++) {
             printf("%d ", stations[i].operations[j]);
         }
         printf("\n");
@@ -134,10 +134,10 @@ void assignOperations(const AdjacencyMatrix* adjacencyMatrix) {
     }
     free(stations);
 
-    for (int i = 1; i <= adjacencyMatrix->size; i++) {
-        free(incompatiblePairs[i - 1]);
+    for (int i = 1; i <= adjMatrice->tailleMat; i++) {
+        free(incompatibles[i - 1]);
     }
-    free(incompatiblePairs);
+    free(incompatibles);
 }
 
 
@@ -162,19 +162,19 @@ int main() {
     fseek(fichier, 0, SEEK_SET);
 
     // Initialiser la matrice d'adjacence
-    AdjacencyMatrix adjacencyMatrix = initMatrix(maxOperation);
+    Adjacence adjMatrice = initMatrice(maxOperation);
 
     // Lire les contraintes et mettre à jour la matrice
-    readConstraints(fichier, &adjacencyMatrix);
+    Contraintes(fichier, &adjMatrice);
 
     // Fermer le fichier
     fclose(fichier);
 
     // Répartir les opérations par station
-    assignOperations(&adjacencyMatrix);
+    assignOperations(&adjMatrice);
 
     // Libérer la mémoire allouée
-    freeMatrix(&adjacencyMatrix);
+    freeM(&adjMatrice);
 
     return 0;
 }
