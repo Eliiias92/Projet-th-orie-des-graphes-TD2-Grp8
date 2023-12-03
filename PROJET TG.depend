@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1701464165 source:c:\users\testf\desktop\projet tg\main.c
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+	<string.h>
+
